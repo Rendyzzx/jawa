@@ -22,7 +22,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await storage.initializeData();
 
   // Session middleware - use PostgreSQL if available, otherwise memory store
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const sessionTtl = 30 * 60 * 1000; // 30 minutes
   let sessionStore;
   
   if (process.env.DATABASE_URL) {
@@ -45,10 +45,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset session timeout on each request
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
-      maxAge: 30 * 60 * 1000, // 30 minutes
+      maxAge: sessionTtl,
     },
   }));
 

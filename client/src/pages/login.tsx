@@ -84,15 +84,15 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
             <Database className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Database Management</h1>
-          <p className="text-gray-600">Secure access to number database system</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Database Management</h1>
+          <p className="text-muted-foreground">Secure access to number database system</p>
         </div>
 
         {/* Login Form */}

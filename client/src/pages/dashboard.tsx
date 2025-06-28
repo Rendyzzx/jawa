@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,9 @@ import {
   ChartLine,
   UserPlus,
   Settings,
+  Sun,
+  Moon,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,13 +32,36 @@ import { insertNumberSchema, type InsertNumber, type Number } from "@shared/sche
 import { authApi } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/ThemeProvider";
 import { AddUserModal } from "@/components/AddUserModal";
+import { DeveloperProfile } from "@/components/DeveloperProfile";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showDeveloperProfile, setShowDeveloperProfile] = useState(false);
+
+  // Get user info
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: () => authApi.getMe(),
+  });
+
+  // Show developer profile popup after successful login
+  useEffect(() => {
+    const hasShownProfile = sessionStorage.getItem('hasShownDeveloperProfile');
+    if (!hasShownProfile && user?.isAuthenticated) {
+      const timer = setTimeout(() => {
+        setShowDeveloperProfile(true);
+        sessionStorage.setItem('hasShownDeveloperProfile', 'true');
+      }, 1000); // Show after 1 second delay
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user?.isAuthenticated]);
 
   const form = useForm<InsertNumber>({
     resolver: zodResolver(insertNumberSchema),
@@ -43,12 +69,6 @@ export default function Dashboard() {
       number: "",
       note: "",
     },
-  });
-
-  // Get user info
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ["/api/auth/me"],
-    queryFn: () => authApi.getMe(),
   });
 
   // Get numbers  
@@ -179,37 +199,70 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
+      {/* Developer Profile Modal */}
+      <DeveloperProfile 
+        isOpen={showDeveloperProfile} 
+        onClose={() => setShowDeveloperProfile(false)} 
+      />
+      
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Database className="h-6 w-6 text-primary mr-3" />
-              <h1 className="text-xl font-semibold text-gray-900">Number Database</h1>
+              <h1 className="text-xl font-semibold text-foreground">Number Database</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 flex items-center">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-muted-foreground flex items-center">
                 <User className="h-4 w-4 mr-2" />
                 {user.username} ({user.role})
               </span>
+              
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="w-9 h-9 p-0"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+              
+              {/* Developer Profile Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDeveloperProfile(true)}
+                className="w-9 h-9 p-0"
+              >
+                <Users className="h-4 w-4" />
+              </Button>
+              
               {user.role === "admin" && (
                 <AddUserModal>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                    className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     Kelola User
                   </Button>
                 </AddUserModal>
               )}
+              
               <Button
-                variant="ghost"
+                variant="destructive"
                 size="sm"
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
+                className="ml-2"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -246,7 +299,7 @@ export default function Dashboard() {
                               className="h-12"
                             />
                           </FormControl>
-                          <p className="text-xs text-gray-500">Enter phone number with country code</p>
+                          <p className="text-xs text-muted-foreground">Enter phone number with country code</p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -320,7 +373,7 @@ export default function Dashboard() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10 pr-4 py-2 text-sm w-full sm:w-64"
                       />
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                     <Button
                       onClick={handleExport}
