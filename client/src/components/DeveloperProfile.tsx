@@ -78,13 +78,22 @@ export function DeveloperProfile({ isOpen, onClose }: DeveloperProfileProps) {
         <CardContent className="space-y-6">
           {/* Web Developer */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <span className="font-medium text-gray-900 dark:text-gray-100">Web Developer</span>
-              <Badge variant="secondary" className="ml-auto">Frontend & Backend</Badge>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img 
+                  src="https://cloudkuimages.guru/uploads/images/S9Dn2gLe.jpg" 
+                  alt="Web Developer"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-blue-200 dark:border-blue-800"
+                />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+              </div>
+              <div className="flex-1">
+                <span className="font-medium text-gray-900 dark:text-gray-100">Web Developer</span>
+                <Badge variant="secondary" className="ml-2">Frontend & Backend</Badge>
+              </div>
             </div>
             
-            <div className="ml-7 space-y-2">
+            <div className="ml-13 space-y-2">
               <div>
                 <span className="text-sm text-gray-600 dark:text-gray-400">Nama:</span>
                 <p className="font-medium text-gray-900 dark:text-gray-100">Danixren</p>
@@ -107,13 +116,22 @@ export function DeveloperProfile({ isOpen, onClose }: DeveloperProfileProps) {
 
           {/* Bot Developer */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <span className="font-medium text-gray-900 dark:text-gray-100">Bot Developer</span>
-              <Badge variant="secondary" className="ml-auto">WhatsApp Bot</Badge>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img 
+                  src="https://cloudkuimages.guru/uploads/images/KvOWfnCd.jpg" 
+                  alt="Bot Developer"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-green-200 dark:border-green-800"
+                />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+              </div>
+              <div className="flex-1">
+                <span className="font-medium text-gray-900 dark:text-gray-100">Bot Developer</span>
+                <Badge variant="secondary" className="ml-2">WhatsApp Bot</Badge>
+              </div>
             </div>
             
-            <div className="ml-7 space-y-2">
+            <div className="ml-13 space-y-2">
               <div>
                 <span className="text-sm text-gray-600 dark:text-gray-400">Nama:</span>
                 <p className="font-medium text-gray-900 dark:text-gray-100">Alex</p>

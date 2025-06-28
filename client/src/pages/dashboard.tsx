@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ThemeProvider";
 import { AddUserModal } from "@/components/AddUserModal";
 import { DeveloperProfile } from "@/components/DeveloperProfile";
+import { SecurityModal } from "@/components/SecurityModal";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -43,6 +44,8 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [showDeveloperProfile, setShowDeveloperProfile] = useState(false);
+  const [securityPassword, setSecurityPassword] = useState("");
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
 
   // Get user info
   const { data: user, isLoading: userLoading } = useQuery({
@@ -64,9 +67,14 @@ export default function Dashboard() {
   }, [user?.isAuthenticated]);
 
   const form = useForm<InsertNumber>({
-    resolver: zodResolver(insertNumberSchema),
+    resolver: zodResolver(insertNumberSchema.extend({
+      number: insertNumberSchema.shape.number
+        .min(1, "Nomor tidak boleh kosong")
+        .refine((val) => val.startsWith("62"), "Nomor harus dimulai dengan 62")
+        .refine((val) => val.length >= 10, "Nomor minimal 10 karakter")
+    })),
     defaultValues: {
-      number: "",
+      number: "62",
       note: "",
     },
   });
@@ -130,7 +138,24 @@ export default function Dashboard() {
   });
 
   const onSubmit = (data: InsertNumber) => {
-    addNumberMutation.mutate(data);
+    // Show security modal first
+    setShowSecurityModal(true);
+  };
+
+  const handleSecuritySubmit = (password: string) => {
+    const defaultPassword = "rendyzsuamihoshino";
+    if (password === defaultPassword) {
+      const formData = form.getValues();
+      addNumberMutation.mutate(formData);
+      setShowSecurityModal(false);
+      setSecurityPassword("");
+    } else {
+      toast({
+        title: "Password Salah",
+        description: "Password keamanan tidak valid",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCopy = (number: string) => {
@@ -199,74 +224,86 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background animate-in fade-in-0 duration-500">
       {/* Developer Profile Modal */}
       <DeveloperProfile 
         isOpen={showDeveloperProfile} 
         onClose={() => setShowDeveloperProfile(false)} 
       />
       
+      {/* Security Password Modal */}
+      <SecurityModal
+        isOpen={showSecurityModal}
+        onClose={() => setShowSecurityModal(false)}
+        onSubmit={handleSecuritySubmit}
+        isLoading={addNumberMutation.isPending}
+      />
+      
       {/* Header */}
-      <header className="bg-card shadow-sm border-b border-border">
+      <header className="bg-card shadow-sm border-b border-border animate-in slide-in-from-top duration-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
+            <div className="flex items-center animate-in fade-in-50 duration-700">
               <Database className="h-6 w-6 text-primary mr-3" />
               <h1 className="text-xl font-semibold text-foreground">Number Database</h1>
             </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-muted-foreground flex items-center">
+            
+            <div className="flex items-center space-x-2 animate-in fade-in-50 duration-700 delay-300">
+              <span className="text-sm text-muted-foreground flex items-center mr-4">
                 <User className="h-4 w-4 mr-2" />
                 {user.username} ({user.role})
               </span>
               
-              {/* Theme Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="w-9 h-9 p-0"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <Moon className="h-4 w-4" />
+              {/* Action Buttons Container */}
+              <div className="flex items-center space-x-2 bg-muted/30 rounded-lg p-1">
+                {/* Theme Toggle */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="w-8 h-8 p-0 hover:bg-background/50 transition-all duration-200"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-4 w-4" />
+                  ) : (
+                    <Moon className="h-4 w-4" />
+                  )}
+                </Button>
+                
+                {/* Developer Profile Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDeveloperProfile(true)}
+                  className="w-8 h-8 p-0 hover:bg-background/50 transition-all duration-200"
+                >
+                  <Users className="h-4 w-4" />
+                </Button>
+                
+                {user.role === "admin" && (
+                  <AddUserModal>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200"
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Kelola User
+                    </Button>
+                  </AddUserModal>
                 )}
-              </Button>
-              
-              {/* Developer Profile Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowDeveloperProfile(true)}
-                className="w-9 h-9 p-0"
-              >
-                <Users className="h-4 w-4" />
-              </Button>
-              
-              {user.role === "admin" && (
-                <AddUserModal>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Kelola User
-                  </Button>
-                </AddUserModal>
-              )}
-              
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
-                className="ml-2"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+                
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                  className="transition-all duration-200 hover:scale-105"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -275,10 +312,10 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Add Number Section */}
-          <div className="lg:col-span-1">
-            <Card className="shadow-lg">
+          <div className="lg:col-span-1 animate-in slide-in-from-left duration-700 delay-500">
+            <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-primary/10">
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center animate-in fade-in-50 duration-500 delay-700">
                   <PlusCircle className="h-5 w-5 text-primary mr-3" />
                   Add New Number
                 </CardTitle>
@@ -290,16 +327,23 @@ export default function Dashboard() {
                       control={form.control}
                       name="number"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
+                        <FormItem className="animate-in slide-in-from-bottom duration-500 delay-800">
+                          <FormLabel>Phone Number *</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="e.g., +62812345678"
+                              placeholder="Contoh: 6281234567890"
                               {...field}
-                              className="h-12"
+                              className="h-12 transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/\D/g, '');
+                                if (!value.startsWith('62') && value.length > 0) {
+                                  value = '62' + value;
+                                }
+                                field.onChange(value);
+                              }}
                             />
                           </FormControl>
-                          <p className="text-xs text-muted-foreground">Enter phone number with country code</p>
+                          <p className="text-xs text-muted-foreground">Masukkan nomor dengan awalan 62 (tanpa +)</p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -309,13 +353,13 @@ export default function Dashboard() {
                       control={form.control}
                       name="note"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="animate-in slide-in-from-bottom duration-500 delay-900">
                           <FormLabel>Note (Optional)</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Add a note about this number..."
                               rows={3}
-                              className="resize-none"
+                              className="resize-none transition-all duration-200 focus:scale-[1.02] focus:border-primary"
                               {...field}
                               value={field.value ?? ""}
                             />
@@ -327,11 +371,14 @@ export default function Dashboard() {
 
                     <Button
                       type="submit"
-                      className="w-full h-12"
+                      className="w-full h-12 animate-in slide-in-from-bottom duration-500 delay-1000 transition-all duration-200 hover:scale-105 active:scale-95"
                       disabled={addNumberMutation.isPending}
                     >
                       {addNumberMutation.isPending ? (
-                        "Adding..."
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Menambahkan...
+                        </div>
                       ) : (
                         <>
                           <Plus className="mr-2 h-4 w-4" />
@@ -357,27 +404,27 @@ export default function Dashboard() {
           </div>
 
           {/* Numbers List Section */}
-          <div className="lg:col-span-2">
-            <Card className="shadow-lg">
+          <div className="lg:col-span-2 animate-in slide-in-from-right duration-700 delay-600">
+            <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-primary/10">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center animate-in fade-in-50 duration-500 delay-700">
                     <List className="h-5 w-5 text-primary mr-3" />
-                    Stored Numbers
+                    Stored Numbers ({filteredNumbers.length})
                   </CardTitle>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 animate-in slide-in-from-top duration-500 delay-800">
                     <div className="relative">
                       <Input
                         placeholder="Search numbers..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-4 py-2 text-sm w-full sm:w-64"
+                        className="pl-10 pr-4 py-2 text-sm w-full sm:w-64 transition-all duration-200 focus:scale-[1.02] focus:border-primary"
                       />
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                     <Button
                       onClick={handleExport}
-                      className="bg-green-500 hover:bg-green-600 flex-shrink-0"
+                      className="bg-green-500 hover:bg-green-600 flex-shrink-0 transition-all duration-200 hover:scale-105 active:scale-95"
                       size="sm"
                     >
                       <Download className="mr-2 h-4 w-4" />

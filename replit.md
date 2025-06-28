@@ -145,6 +145,30 @@ Your application uses a hybrid storage system that automatically adapts based on
 - Mobile-friendly dashboard layout
 - Fixed overflow issues on smaller screens
 
+## Recent Enhancements
+
+### User Interface Improvements
+- **Dark Mode by Default**: Application now starts in dark mode with seamless light/dark toggle
+- **Responsive Header Layout**: Centered button layout with improved spacing and visual hierarchy
+- **Developer Profile Popup**: Automatic popup after login with circular profile images and contact information
+- **Enhanced Animations**: Smooth entrance animations across all pages and components
+
+### Security Features
+- **Password Protection for Number Entry**: Additional security layer requiring password "rendyzsuamihoshino" when adding new numbers
+- **Session Management**: 30-minute timeout with rolling refresh on activity
+- **Input Validation**: Numbers must start with "62" prefix and cannot be empty
+
+### Form Enhancements
+- **Smart Number Formatting**: Automatic "62" prefix enforcement without "+" symbol
+- **Real-time Validation**: Immediate feedback for invalid input formats
+- **Required Field Enforcement**: Numbers cannot be submitted empty
+
+### Visual Design
+- **Profile Integration**: Developer photos with online status indicators
+- **Smooth Transitions**: Hover effects and scaling animations throughout
+- **Loading States**: Animated spinners and progress indicators
+- **Theme Consistency**: Proper color variables across all components
+
 ## Changelog
 - June 28, 2025. Initial setup with role-based authentication system
 - June 28, 2025. Migrated from JSON file storage to PostgreSQL database
@@ -152,6 +176,7 @@ Your application uses a hybrid storage system that automatically adapts based on
 - June 28, 2025. Enhanced security: moved user data to encrypted file storage with AES-256 encryption, PBKDF2 password hashing, and integrity verification
 - June 28, 2025. Added hybrid storage system with PostgreSQL support and authentication security improvements
 - June 28, 2025. Fixed dashboard layout issues and implemented protected routing system
+- June 28, 2025. Implemented dark mode default, developer profile popup, security password protection, number validation with 62 prefix, and comprehensive animations
 
 ## User Preferences
 

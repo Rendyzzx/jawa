@@ -84,19 +84,19 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background animate-in fade-in-0 duration-500">
+      <div className="max-w-md w-full animate-in slide-in-from-bottom duration-700 delay-200">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4 animate-in zoom-in-50 duration-500 delay-400 hover:scale-110 transition-transform">
             <Database className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Database Management</h1>
-          <p className="text-muted-foreground">Secure access to number database system</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2 animate-in slide-in-from-top duration-500 delay-600">Database Management</h1>
+          <p className="text-muted-foreground animate-in fade-in-50 duration-500 delay-700">Secure access to number database system</p>
         </div>
 
         {/* Login Form */}
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in slide-in-from-bottom duration-500 delay-800 hover:shadow-xl transition-all">
           <CardContent className="p-8">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -104,7 +104,7 @@ export default function Login() {
                   control={form.control}
                   name="username"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="animate-in slide-in-from-left duration-500 delay-900">
                       <FormLabel className="flex items-center gap-2">
                         <User className="h-4 w-4" />
                         Username
@@ -113,7 +113,7 @@ export default function Login() {
                         <Input
                           placeholder="Enter your username"
                           {...field}
-                          className="h-12"
+                          className="h-12 transition-all duration-200 focus:scale-[1.02] focus:border-primary"
                         />
                       </FormControl>
                       <FormMessage />
@@ -125,7 +125,7 @@ export default function Login() {
                   control={form.control}
                   name="password"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="animate-in slide-in-from-right duration-500 delay-1000">
                       <FormLabel className="flex items-center gap-2">
                         <Lock className="h-4 w-4" />
                         Password
@@ -136,19 +136,19 @@ export default function Login() {
                             type={showPassword ? "text" : "password"}
                             placeholder="Enter your password"
                             {...field}
-                            className="h-12 pr-12"
+                            className="h-12 pr-12 transition-all duration-200 focus:scale-[1.02] focus:border-primary"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent transition-all duration-200 hover:scale-110"
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-gray-400" />
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
                             ) : (
-                              <Eye className="h-4 w-4 text-gray-400" />
+                              <Eye className="h-4 w-4 text-muted-foreground" />
                             )}
                           </Button>
                         </div>
@@ -160,11 +160,14 @@ export default function Login() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12"
+                  className="w-full h-12 animate-in slide-in-from-bottom duration-500 delay-1100 transition-all duration-200 hover:scale-105 active:scale-95"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
-                    "Signing in..."
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Signing in...
+                    </div>
                   ) : (
                     <>
                       <User className="mr-2 h-4 w-4" />
@@ -176,11 +179,11 @@ export default function Login() {
             </Form>
 
             {/* Security Notice */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg animate-in fade-in-50 duration-500 delay-1200">
               <div className="flex items-start">
                 <Shield className="h-5 w-5 text-primary mt-0.5 mr-3" />
-                <div className="text-sm text-gray-600">
-                  <p className="font-medium mb-1">Security Notice</p>
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-medium mb-1 text-foreground">Security Notice</p>
                   <p>All data is stored securely outside the public directory. Session timeout occurs after 30 minutes of inactivity.</p>
                 </div>
               </div>
