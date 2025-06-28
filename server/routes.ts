@@ -4,6 +4,7 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { authService } from "./auth";
+import { secureUserStorage } from "./security/userStorage";
 import { insertNumberSchema, loginSchema, changeCredentialsSchema } from "@shared/schema";
 
 declare module "express-session" {
@@ -137,6 +138,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to update credentials" });
       }
+    }
+  });
+
+  // Create new user (admin only)
+  app.post("/api/auth/create-user", requireAdmin, async (req, res) => {
+    try {
+      const { username, password, role } = req.body;
+      
+      if (!username || !password || !role) {
+        return res.status(400).json({ message: "Username, password, and role are required" });
+      }
+      
+      if (!["admin", "user"].includes(role)) {
+        return res.status(400).json({ message: "Role must be either 'admin' or 'user'" });
+      }
+      
+      if (username.length < 3) {
+        return res.status(400).json({ message: "Username must be at least 3 characters" });
+      }
+      
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+      
+      const newUser = await secureUserStorage.createUser(username, password, role);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "User created successfully",
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          role: newUser.role
+        }
+      });
+    } catch (error: any) {
+      if (error.message === "Username already exists") {
+        res.status(409).json({ message: "Username already exists" });
+      } else {
+        console.error("Error creating user:", error);
+        res.status(500).json({ message: "Failed to create user" });
+      }
+    }
+  });
+
+  // Get all users (admin only)
+  app.get("/api/auth/users", requireAdmin, async (req, res) => {
+    try {
+      const users = await secureUserStorage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 

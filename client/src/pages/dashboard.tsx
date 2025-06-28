@@ -16,6 +16,8 @@ import {
   List,
   PlusCircle,
   ChartLine,
+  UserPlus,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +29,7 @@ import { insertNumberSchema, type InsertNumber, type Number } from "@shared/sche
 import { authApi } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { AddUserModal } from "@/components/AddUserModal";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -190,6 +193,18 @@ export default function Dashboard() {
                 <User className="h-4 w-4 mr-2" />
                 {user.username} ({user.role})
               </span>
+              {user.role === "admin" && (
+                <AddUserModal>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Kelola User
+                  </Button>
+                </AddUserModal>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
