@@ -307,24 +307,24 @@ export default function Dashboard() {
           <div className="lg:col-span-2">
             <Card className="shadow-lg">
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <CardTitle className="flex items-center">
                     <List className="h-5 w-5 text-primary mr-3" />
                     Stored Numbers
                   </CardTitle>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative">
                       <Input
                         placeholder="Search numbers..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-4 py-2 text-sm w-64"
+                        className="pl-10 pr-4 py-2 text-sm w-full sm:w-64"
                       />
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     </div>
                     <Button
                       onClick={handleExport}
-                      className="bg-green-500 hover:bg-green-600"
+                      className="bg-green-500 hover:bg-green-600 flex-shrink-0"
                       size="sm"
                     >
                       <Download className="mr-2 h-4 w-4" />

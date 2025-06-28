@@ -1,4 +1,11 @@
 {
-  "numbers": [],
-  "nextNumberId": 1
+  "numbers": [
+    {
+      "id": 1,
+      "number": "6281249578370",
+      "note": null,
+      "createdAt": "2025-06-28T03:42:38.927Z"
+    }
+  ],
+  "nextNumberId": 2
 }

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Database, Eye, EyeOff, Lock, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,21 @@ export default function Login() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
+
+  // Check if user is already authenticated
+  const { data: auth, isLoading: authLoading } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: () => authApi.getMe(),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!authLoading && auth?.isAuthenticated) {
+      setLocation("/dashboard");
+    }
+  }, [auth?.isAuthenticated, authLoading, setLocation]);
 
   const form = useForm<LoginRequest>({
     resolver: zodResolver(loginSchema),
@@ -53,6 +68,20 @@ export default function Login() {
   const onSubmit = (data: LoginRequest) => {
     loginMutation.mutate(data);
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Don't render login form if already authenticated (will redirect)
+  if (auth?.isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
