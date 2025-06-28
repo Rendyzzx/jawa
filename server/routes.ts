@@ -73,6 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(401).json({ message: "Invalid username or password" });
       }
     } catch (error) {
+      console.error("Login error:", error);
       res.status(400).json({ message: "Invalid request data" });
     }
   });

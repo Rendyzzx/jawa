@@ -25,17 +25,24 @@ class SecureUserStorage {
   constructor() {
     // Store outside public folders for security
     this.dataPath = path.join(process.cwd(), "server", "security", "users.enc");
-    // Use environment variable or generate secure key
-    this.encryptionKey = process.env.USER_ENCRYPTION_KEY || this.generateSecureKey();
+    // Use environment variable or consistent default key
+    this.encryptionKey = process.env.USER_ENCRYPTION_KEY || "danixren_secure_key_2025_replit_db";
   }
 
   private generateSecureKey(): string {
     return crypto.randomBytes(32).toString('hex');
   }
 
+  private getKey(): Buffer {
+    // Create consistent 32-byte key from our key string
+    const hash = crypto.createHash('sha256');
+    hash.update(this.encryptionKey);
+    return hash.digest();
+  }
+
   private encrypt(data: string): string {
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-cbc', this.encryptionKey);
+    const cipher = crypto.createCipheriv('aes-256-cbc', this.getKey(), iv);
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     return iv.toString('hex') + ':' + encrypted;
@@ -46,11 +53,12 @@ class SecureUserStorage {
       const parts = encryptedData.split(':');
       const iv = Buffer.from(parts[0], 'hex');
       const encrypted = parts[1];
-      const decipher = crypto.createDecipher('aes-256-cbc', this.encryptionKey);
+      const decipher = crypto.createDecipheriv('aes-256-cbc', this.getKey(), iv);
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
     } catch (error) {
+      console.error('Decryption error:', error);
       throw new Error('Failed to decrypt user data - possible tampering detected');
     }
   }
