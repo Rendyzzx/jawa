@@ -27,7 +27,7 @@ This is a full-stack web application built with React and Express that provides 
 
 ### Authentication System
 - Session-based authentication with configurable credentials
-- Default credentials: username "admin", password "admin123"
+- Credentials: username "danixren", password "pendukungjava"
 - Session middleware protecting API routes
 - Automatic session timeout (30 minutes)
 
