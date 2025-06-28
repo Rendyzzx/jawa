@@ -2,7 +2,9 @@ import { apiRequest } from "./queryClient";
 
 export interface AuthResponse {
   isAuthenticated: boolean;
+  userId?: number;
   username?: string;
+  role?: string;
 }
 
 export const authApi = {

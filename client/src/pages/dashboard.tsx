@@ -119,6 +119,15 @@ export default function Dashboard() {
   };
 
   const handleDelete = (id: number) => {
+    if (!user?.role || user.role !== "admin") {
+      toast({
+        title: "Access Denied",
+        description: "Only admin can delete numbers",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (confirm("Are you sure you want to delete this number?")) {
       deleteNumberMutation.mutate(id);
     }
@@ -179,7 +188,7 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600 flex items-center">
                 <User className="h-4 w-4 mr-2" />
-                {user.username}
+                {user.username} ({user.role})
               </span>
               <Button
                 variant="ghost"
@@ -367,15 +376,17 @@ export default function Dashboard() {
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(number.id)}
-                            disabled={deleteNumberMutation.isPending}
-                            className="text-gray-400 hover:text-red-500"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {user?.role === "admin" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(number.id)}
+                              disabled={deleteNumberMutation.isPending}
+                              className="text-gray-400 hover:text-red-500"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}

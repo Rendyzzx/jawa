@@ -26,15 +26,17 @@ This is a full-stack web application built with React and Express that provides 
 ## Key Components
 
 ### Authentication System
-- Session-based authentication with configurable credentials
-- Credentials: username "danixren", password "pendukungjava"
-- Session middleware protecting API routes
+- Role-based authentication system with PostgreSQL-backed sessions
+- Two user roles: admin (can delete numbers, change credentials) and user (view-only)
+- Default admin: username "danixren", password "pendukungjava"
+- Session middleware protecting API routes with role-based access
+- PostgreSQL session storage for persistence
 - Automatic session timeout (30 minutes)
 
 ### Data Management
-- **File Storage**: JSON-based storage for development (`server/data/numbers.json`)
-- **Database Ready**: Drizzle ORM configured for PostgreSQL migration
-- **Schema**: Numbers table with id, number, note, and timestamp fields
+- **Database**: PostgreSQL with Drizzle ORM for production
+- **Schema**: Users table (id, username, password, role), Numbers table (id, number, note, timestamp), Sessions table
+- **Role System**: Admin users can delete numbers and manage credentials, regular users have read-only access
 - **Validation**: Zod schemas for input validation and type safety
 
 ### UI Components
@@ -44,12 +46,13 @@ This is a full-stack web application built with React and Express that provides 
 - **Accessibility**: Radix UI primitives ensure ARIA compliance
 
 ### API Structure
-- `POST /api/auth/login` - User authentication
+- `POST /api/auth/login` - User authentication with role assignment
 - `POST /api/auth/logout` - Session termination
-- `GET /api/auth/me` - Current user info
-- `GET /api/numbers` - Retrieve all numbers
-- `POST /api/numbers` - Add new number
-- `DELETE /api/numbers/:id` - Remove number
+- `GET /api/auth/me` - Current user info including role
+- `POST /api/auth/change-credentials` - Change credentials (admin only)
+- `GET /api/numbers` - Retrieve all numbers (authenticated users)
+- `POST /api/numbers` - Add new number (authenticated users)
+- `DELETE /api/numbers/:id` - Remove number (admin only)
 
 ## Data Flow
 
@@ -104,7 +107,9 @@ This is a full-stack web application built with React and Express that provides 
 - `npm run db:push` - Database schema migration
 
 ## Changelog
-- June 28, 2025. Initial setup
+- June 28, 2025. Initial setup with role-based authentication system
+- June 28, 2025. Migrated from JSON file storage to PostgreSQL database
+- June 28, 2025. Implemented admin/user role system with restricted delete access
 
 ## User Preferences
 
