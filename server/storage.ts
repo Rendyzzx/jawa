@@ -1,4 +1,5 @@
-import { type Number, type InsertNumber, type User, type InsertUser, type UpdateUser } from "@shared/schema";
+import { numbers, users, type Number, type InsertNumber, type User, type InsertUser, type UpdateUser } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import fs from "fs/promises";
 import path from "path";
 
@@ -152,4 +153,141 @@ export class FileStorage implements IStorage {
   }
 }
 
-export const storage = new FileStorage();
+export class DatabaseStorage implements IStorage {
+  private db: any;
+
+  constructor() {
+    // Lazy load db to avoid import issues
+    this.db = null;
+  }
+
+  private async getDb() {
+    if (!this.db) {
+      const dbModule = await import("./db");
+      this.db = dbModule.db;
+      if (!this.db) {
+        throw new Error("Database not available. Please set DATABASE_URL environment variable.");
+      }
+    }
+    return this.db;
+  }
+
+  async initializeData(): Promise<void> {
+    try {
+      // Check if admin user exists, if not create one
+      const adminUser = await this.getUserByUsername("admin");
+      if (!adminUser) {
+        await this.createUser({
+          username: "admin",
+          password: "admin123",
+          role: "admin"
+        });
+      }
+
+      // Check if regular user exists, if not create one
+      const regularUser = await this.getUserByUsername("danixren");
+      if (!regularUser) {
+        await this.createUser({
+          username: "danixren",
+          password: "pendukungjava",
+          role: "user"
+        });
+      }
+    } catch (error) {
+      console.error("Failed to initialize data:", error);
+    }
+  }
+
+  // Numbers management
+  async getNumbers(): Promise<Number[]> {
+    const db = await this.getDb();
+    const result = await db.select().from(numbers).orderBy(numbers.createdAt);
+    return result.reverse(); // Most recent first
+  }
+
+  async addNumber(insertNumber: InsertNumber): Promise<Number> {
+    const db = await this.getDb();
+    const [number] = await db
+      .insert(numbers)
+      .values(insertNumber)
+      .returning();
+    return number;
+  }
+
+  async deleteNumber(id: number): Promise<boolean> {
+    const db = await this.getDb();
+    const result = await db
+      .delete(numbers)
+      .where(eq(numbers.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // User management
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const db = await this.getDb();
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
+    return user ? {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    } : undefined;
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    const db = await this.getDb();
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
+    return user ? {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    } : undefined;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const db = await this.getDb();
+    const [newUser] = await db
+      .insert(users)
+      .values(user)
+      .returning();
+    return {
+      id: newUser.id,
+      username: newUser.username,
+      role: newUser.role,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt
+    };
+  }
+
+  async updateUser(id: number, updates: UpdateUser): Promise<User | undefined> {
+    const db = await this.getDb();
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser ? {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      role: updatedUser.role,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt
+    } : undefined;
+  }
+}
+
+// Use DatabaseStorage if DATABASE_URL is available, otherwise fallback to FileStorage
+export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new FileStorage();

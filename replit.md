@@ -38,11 +38,12 @@ This is a full-stack web application built with React and Express that provides 
 
 ### Data Management
 - **User Storage**: Secure encrypted file storage (`server/security/users.enc`) with AES-256 encryption
-- **Numbers Storage**: PostgreSQL with Drizzle ORM for production
-- **Schema**: Numbers table (id, number, note, timestamp), Sessions table
+- **Numbers Storage**: Hybrid storage system - PostgreSQL with Drizzle ORM when DATABASE_URL is set, fallback to file-based JSON storage
+- **Schema**: Numbers table (id, number, note, timestamp), Users table, Sessions table
 - **Role System**: Admin users can delete numbers and manage credentials, regular users have read-only access
 - **Security Features**: Password hashing, data integrity checks, file permissions (600)
 - **Validation**: Zod schemas for input validation and type safety
+- **Database Migration**: Automatic table creation with `npm run db:push` when PostgreSQL is configured
 
 ### UI Components
 - **Design System**: shadcn/ui with "new-york" style variant
@@ -100,10 +101,10 @@ This is a full-stack web application built with React and Express that provides 
 - **Session**: In-memory sessions (development only)
 
 ### Production Ready
-- **Database**: PostgreSQL with Neon serverless configured
-- **Sessions**: PostgreSQL-backed session storage
+- **Database**: Hybrid storage - PostgreSQL with Neon serverless when configured, file-based fallback for development
+- **Sessions**: PostgreSQL-backed session storage when database is available, memory store fallback
 - **Build**: Vite build for frontend, esbuild for backend
-- **Environment**: Requires `DATABASE_URL` and `SESSION_SECRET`
+- **Environment**: Optional `DATABASE_URL` for PostgreSQL, `SESSION_SECRET` recommended for production
 
 ### Build Commands
 - `npm run dev` - Development with file watching
@@ -111,11 +112,46 @@ This is a full-stack web application built with React and Express that provides 
 - `npm run start` - Production server
 - `npm run db:push` - Database schema migration
 
+## Database Setup
+
+### Current Status
+Your application uses a hybrid storage system that automatically adapts based on available resources:
+
+1. **File-based Storage (Current)**: Uses encrypted JSON files for numbers and secure user authentication
+2. **PostgreSQL Database (Optional)**: Full database support when `DATABASE_URL` is configured
+
+### To Enable PostgreSQL Database:
+1. Set up a PostgreSQL database (Neon, Supabase, or other provider)
+2. Add `DATABASE_URL` environment variable to your Replit project
+3. Run `npm run db:push` to create the database tables
+4. Restart the application - it will automatically switch to database storage
+
+### Benefits of PostgreSQL:
+- Better performance with large datasets
+- Persistent session storage
+- Full ACID compliance
+- Better concurrent access handling
+
+## Security Features
+
+### Authentication Protection
+- Protected routes prevent bypassing login page
+- Automatic redirect to dashboard when authenticated
+- Session-based authentication with timeout
+- Role-based access control (admin/user)
+
+### Layout Improvements
+- Responsive export button positioning
+- Mobile-friendly dashboard layout
+- Fixed overflow issues on smaller screens
+
 ## Changelog
 - June 28, 2025. Initial setup with role-based authentication system
 - June 28, 2025. Migrated from JSON file storage to PostgreSQL database
 - June 28, 2025. Implemented admin/user role system with restricted delete access
 - June 28, 2025. Enhanced security: moved user data to encrypted file storage with AES-256 encryption, PBKDF2 password hashing, and integrity verification
+- June 28, 2025. Added hybrid storage system with PostgreSQL support and authentication security improvements
+- June 28, 2025. Fixed dashboard layout issues and implemented protected routing system
 
 ## User Preferences
 
