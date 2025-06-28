@@ -26,17 +26,22 @@ This is a full-stack web application built with React and Express that provides 
 ## Key Components
 
 ### Authentication System
-- Role-based authentication system with PostgreSQL-backed sessions
+- Secure file-based authentication with encrypted user storage
 - Two user roles: admin (can delete numbers, change credentials) and user (view-only)
 - Default admin: username "danixren", password "pendukungjava"
+- User data stored in encrypted file (`server/security/users.enc`) with AES-256 encryption
+- Password hashing with PBKDF2 (10,000 iterations) and unique salts
+- Data integrity verification with SHA-256 checksums
 - Session middleware protecting API routes with role-based access
 - PostgreSQL session storage for persistence
 - Automatic session timeout (30 minutes)
 
 ### Data Management
-- **Database**: PostgreSQL with Drizzle ORM for production
-- **Schema**: Users table (id, username, password, role), Numbers table (id, number, note, timestamp), Sessions table
+- **User Storage**: Secure encrypted file storage (`server/security/users.enc`) with AES-256 encryption
+- **Numbers Storage**: PostgreSQL with Drizzle ORM for production
+- **Schema**: Numbers table (id, number, note, timestamp), Sessions table
 - **Role System**: Admin users can delete numbers and manage credentials, regular users have read-only access
+- **Security Features**: Password hashing, data integrity checks, file permissions (600)
 - **Validation**: Zod schemas for input validation and type safety
 
 ### UI Components
@@ -110,6 +115,7 @@ This is a full-stack web application built with React and Express that provides 
 - June 28, 2025. Initial setup with role-based authentication system
 - June 28, 2025. Migrated from JSON file storage to PostgreSQL database
 - June 28, 2025. Implemented admin/user role system with restricted delete access
+- June 28, 2025. Enhanced security: moved user data to encrypted file storage with AES-256 encryption, PBKDF2 password hashing, and integrity verification
 
 ## User Preferences
 

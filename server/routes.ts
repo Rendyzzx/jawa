@@ -87,14 +87,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check auth status
-  app.get("/api/auth/me", (req, res) => {
+  app.get("/api/auth/me", async (req, res) => {
     if (req.session.isAuthenticated) {
-      res.json({ 
-        isAuthenticated: true,
-        userId: req.session.userId,
-        username: req.session.username,
-        role: req.session.role
-      });
+      try {
+        // Verify user still exists in secure storage
+        const user = await authService.getUserById(req.session.userId!);
+        if (user) {
+          res.json({ 
+            isAuthenticated: true,
+            userId: user.id,
+            username: user.username,
+            role: user.role
+          });
+        } else {
+          // User not found, clear session
+          req.session.destroy(() => {
+            res.json({ isAuthenticated: false });
+          });
+        }
+      } catch (error) {
+        console.error("Error verifying user:", error);
+        res.status(500).json({ message: "Failed to verify user" });
+      }
     } else {
       res.json({ isAuthenticated: false });
     }
