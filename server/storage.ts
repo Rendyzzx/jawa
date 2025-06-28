@@ -1,6 +1,4 @@
-import { numbers, users, type Number, type InsertNumber, type User, type InsertUser, type UpdateUser } from "@shared/schema";
-import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { type Number, type InsertNumber, type User, type InsertUser, type UpdateUser } from "@shared/schema";
 import fs from "fs/promises";
 import path from "path";
 
@@ -20,91 +18,138 @@ export interface IStorage {
   initializeData(): Promise<void>;
 }
 
-export class DatabaseStorage implements IStorage {
+interface FileData {
+  numbers: Number[];
+  nextNumberId: number;
+}
+
+export class FileStorage implements IStorage {
+  private dataPath = path.join(process.cwd(), "data", "numbers.json");
+
   async initializeData(): Promise<void> {
     try {
-      // Check if admin user exists, if not create one
-      const adminUser = await this.getUserByUsername("admin");
-      if (!adminUser) {
-        await this.createUser({
-          username: "admin",
-          password: "admin123",
-          role: "admin"
-        });
-      }
-
-      // Check if regular user exists, if not create one
-      const regularUser = await this.getUserByUsername("danixren");
-      if (!regularUser) {
-        await this.createUser({
-          username: "danixren",
-          password: "pendukungjava",
-          role: "user"
-        });
+      await fs.mkdir(path.dirname(this.dataPath), { recursive: true });
+      
+      // Check if data file exists, if not create it
+      try {
+        await fs.access(this.dataPath);
+      } catch {
+        const initialData: FileData = {
+          numbers: [],
+          nextNumberId: 1
+        };
+        await fs.writeFile(this.dataPath, JSON.stringify(initialData, null, 2));
       }
     } catch (error) {
       console.error("Failed to initialize data:", error);
     }
   }
 
+  private async readData(): Promise<FileData> {
+    try {
+      const content = await fs.readFile(this.dataPath, "utf-8");
+      return JSON.parse(content);
+    } catch {
+      return { numbers: [], nextNumberId: 1 };
+    }
+  }
+
+  private async writeData(data: FileData): Promise<void> {
+    await fs.writeFile(this.dataPath, JSON.stringify(data, null, 2));
+  }
+
   // Numbers management
   async getNumbers(): Promise<Number[]> {
-    const result = await db.select().from(numbers).orderBy(numbers.createdAt);
-    return result.reverse(); // Most recent first
+    const data = await this.readData();
+    return data.numbers.reverse(); // Most recent first
   }
 
   async addNumber(insertNumber: InsertNumber): Promise<Number> {
-    const [number] = await db
-      .insert(numbers)
-      .values(insertNumber)
-      .returning();
-    return number;
+    const data = await this.readData();
+    const newNumber: Number = {
+      id: data.nextNumberId,
+      number: insertNumber.number,
+      note: insertNumber.note || null,
+      createdAt: new Date()
+    };
+    
+    data.numbers.push(newNumber);
+    data.nextNumberId++;
+    await this.writeData(data);
+    
+    return newNumber;
   }
 
   async deleteNumber(id: number): Promise<boolean> {
-    const result = await db
-      .delete(numbers)
-      .where(eq(numbers.id, id))
-      .returning();
-    return result.length > 0;
+    const data = await this.readData();
+    const initialLength = data.numbers.length;
+    data.numbers = data.numbers.filter(n => n.id !== id);
+    
+    if (data.numbers.length < initialLength) {
+      await this.writeData(data);
+      return true;
+    }
+    return false;
   }
 
-  // User management
+  // User management - Using secure user storage
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, username));
-    return user || undefined;
+    const { secureUserStorage } = await import("./security/userStorage");
+    const userData = await secureUserStorage.getUserByUsername(username);
+    if (!userData) return undefined;
+    
+    return {
+      id: userData.id,
+      username: userData.username,
+      role: userData.role,
+      createdAt: new Date(userData.createdAt),
+      updatedAt: new Date(userData.updatedAt)
+    };
   }
 
   async getUserById(id: number): Promise<User | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, id));
-    return user || undefined;
+    const { secureUserStorage } = await import("./security/userStorage");
+    const userData = await secureUserStorage.getUserById(id);
+    if (!userData) return undefined;
+    
+    return {
+      id: userData.id,
+      username: userData.username,
+      role: userData.role,
+      createdAt: new Date(userData.createdAt),
+      updatedAt: new Date(userData.updatedAt)
+    };
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [newUser] = await db
-      .insert(users)
-      .values(user)
-      .returning();
-    return newUser;
+    const { secureUserStorage } = await import("./security/userStorage");
+    const userData = await secureUserStorage.createUser(user.username, user.password, (user.role || "user") as "admin" | "user");
+    
+    return {
+      id: userData.id,
+      username: userData.username,
+      role: userData.role,
+      createdAt: new Date(userData.createdAt),
+      updatedAt: new Date(userData.updatedAt)
+    };
   }
 
   async updateUser(id: number, updates: UpdateUser): Promise<User | undefined> {
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, id))
-      .returning();
-    return updatedUser || undefined;
+    const { secureUserStorage } = await import("./security/userStorage");
+    const userData = await secureUserStorage.updateUser(id, {
+      username: updates.username,
+      role: updates.role as "admin" | "user" | undefined
+    });
+    if (!userData) return undefined;
+    
+    return {
+      id: userData.id,
+      username: userData.username,
+      role: userData.role,
+      createdAt: new Date(userData.createdAt),
+      updatedAt: new Date(userData.updatedAt)
+    };
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new FileStorage();

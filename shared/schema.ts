@@ -38,6 +38,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const updateUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  role: true,
 }).partial();
 
 export const insertNumberSchema = createInsertSchema(numbers).pick({
@@ -58,7 +59,7 @@ export const changeCredentialsSchema = z.object({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
-export type User = typeof users.$inferSelect;
+export type User = Omit<typeof users.$inferSelect, 'password'>;
 export type InsertNumber = z.infer<typeof insertNumberSchema>;
 export type Number = typeof numbers.$inferSelect;
 export type LoginRequest = z.infer<typeof loginSchema>;

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
+import MemoryStore from "memorystore";
 import { storage } from "./storage";
 import { authService } from "./auth";
 import { secureUserStorage } from "./security/userStorage";
@@ -20,14 +20,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage
   await storage.initializeData();
 
-  // Session middleware with PostgreSQL store
+  // Session middleware with in-memory store
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
+  const MemoryStoreSession = MemoryStore(session);
+  const sessionStore = new MemoryStoreSession({
+    checkPeriod: sessionTtl,
   });
 
   app.use(session({
