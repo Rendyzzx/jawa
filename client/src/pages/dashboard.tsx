@@ -43,13 +43,13 @@ export default function Dashboard() {
   });
 
   // Get user info
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: () => authApi.getMe(),
   });
 
-  // Get numbers
-  const { data: numbers = [], isLoading } = useQuery({
+  // Get numbers  
+  const { data: numbers = [], isLoading } = useQuery<Number[]>({
     queryKey: ["/api/numbers"],
     enabled: user?.isAuthenticated,
   });
@@ -148,6 +148,19 @@ export default function Dashboard() {
     (number.note && number.note.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  // Show loading while checking authentication
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
   if (!user?.isAuthenticated) {
     setLocation("/");
     return null;
@@ -227,6 +240,7 @@ export default function Dashboard() {
                               rows={3}
                               className="resize-none"
                               {...field}
+                              value={field.value ?? ""}
                             />
                           </FormControl>
                           <FormMessage />

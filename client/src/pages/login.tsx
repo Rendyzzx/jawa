@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Database, Eye, EyeOff, Lock, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginRequest>({
@@ -29,11 +30,16 @@ export default function Login() {
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data.username, data.password),
     onSuccess: () => {
+      // Invalidate auth cache to refresh user data
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
-        title: "Login Successful",
+        title: "Login Successful", 
         description: "Welcome to the database management system",
       });
-      setLocation("/dashboard");
+      // Navigate to dashboard
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 100);
     },
     onError: (error: any) => {
       toast({
